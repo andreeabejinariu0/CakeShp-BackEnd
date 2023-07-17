@@ -36,7 +36,7 @@ class MyTestMail extends Mailable
 
      {
  
-        return $this->subject('Mail from CakeShop')
+        return $this->subject('Order confirmation')
             ->view('emails.myTestMail');
  
      }

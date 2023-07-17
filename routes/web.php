@@ -21,6 +21,8 @@ Route::get('/category', [App\Http\Controllers\CategoryController::class, 'getAll
 
 
 Route::post('/send-order', [App\Http\Controllers\OrderController::class, 'sendOrder']);
+Route::get('/getOrderProducts/{order_id}', [App\Http\Controllers\OrderController::class, 'getProductsByOrder']);
+Route::get('/getOrders/{user_id}', [App\Http\Controllers\OrderController::class, 'getOrders']);
 
 
 Route::post('/login', [App\Http\Controllers\API\UserController::class, 'login']);

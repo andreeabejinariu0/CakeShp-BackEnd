@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Order;
+use App\Models\User;
 use App\Models\OrderProducts;
 use Illuminate\Http\Request;
 
@@ -47,7 +48,7 @@ class OrderController extends Controller
 
         // Construirea corpului email-ului
         $body = "<h2>CakeShop - comanda a fost plasata cu succes</h2>";
-        $body .= "<div style='margin-bottom: 20px;'><strong>ID Client:</strong> $clientId</div>";
+       // $body .= "<div style='margin-bottom: 20px;'><strong>ID Client:</strong> $clientId</div>";
         $body .= "<div style='margin-bottom: 20px;'><strong>Adresă:</strong> $address</div>";
         $body .= "<div style='margin-bottom: 20px;'><strong>Preț total:</strong> $price lei</div>";
         $body .= "<h3>Produse:</h3>";
@@ -64,8 +65,38 @@ class OrderController extends Controller
             'body' => $body
         ];
 
-        \Mail::to('andreea.beji@gmail.com')->send(new \App\Mail\MyTestMail($details));
+        $user = User::where('id', $clientId)->first();
+
+        \Mail::to($user['email'])->send(new \App\Mail\MyTestMail($details));
 
         return response()->json($request->all());
     }
+
+ 
+
+    // Produsele corespunzaoare unei anumite comenzi
+    public function getProductsByOrder($orderId)
+    {
+        $orderedProducts = OrderProducts::with('product')->where('order_id', $orderId)->get();
+   
+        $productData = [];
+        foreach ($orderedProducts as $orderedProduct) {
+            $productData[] = [
+                'id' => $orderedProduct->id,
+                'productName' => $orderedProduct->product->name,
+                'productPrice' => $orderedProduct->product->price,
+                'productImage' => $orderedProduct->product->image,
+            ];
+        }
+   
+        return response()->json($productData);
+    }
+
+    public function getOrders($client_id)
+    {
+        $orders = Order::where('user_id', $client_id)->get();
+
+        return $orders;
+    }
+
 }
