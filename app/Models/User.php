@@ -22,4 +22,8 @@ protected $fillable = [
 */protected $hidden = [
 'password', 'remember_token',
 ];
+
+public function role() {
+  return $this->hasOne(Role::class);
+}
 }

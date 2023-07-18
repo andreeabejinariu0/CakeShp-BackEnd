@@ -3,8 +3,10 @@
     use Illuminate\Http\Request; 
     use App\Http\Controllers\Controller; 
     use App\Models\User; 
+    use App\Models\Role; 
     use Illuminate\Support\Facades\Auth; 
     use Validator;
+    use Illuminate\Database\Eloquent\ModelNotFoundException;
     
     class UserController extends Controller 
 {
@@ -19,11 +21,13 @@
         if (Auth::attempt(['email' => request('email'), 'password' => request('password')])) 
         {
             $user = Auth::user();
+            $userRole = $user->role()->first();
+
             $user_id = $user->id;
             $user_name = $user->name;
-            $success['token'] = $user->createToken('MyApp')->accessToken;
-            //return response()->json(['success' => $success], $this-> successStatus);
-            return response()->json(['message' => "success", 'id' => $user_id, 'name' => $user_name], $this->successStatus);
+            $success['token'] = $user->createToken('MyApp', [$userRole->role] )->accessToken;
+            return response()->json(['success' => $success, 'id' => $user_id, 'name' => $user_name], $this-> successStatus);
+            //return response()->json(['message' => "success", 'id' => $user_id, 'name' => $user_name], $this->successStatus);
         } 
         else 
         {
@@ -51,6 +55,13 @@
             $input = $request->all(); 
         $input['password'] = bcrypt($input['password']); 
         $user = User::create($input); 
+
+        // Creăm înregistrarea în tabelul "roles" pentru a atribui rolul "basic" utilizatorului creat
+        Role::create([
+            'user_id' => $user->id,
+            'role' => 'basic',
+        ]);
+
         $user_id = $user->id;
         $user_name = $user->name;
         $success['token'] =  $user->createToken('MyApp')-> accessToken; 
@@ -67,4 +78,61 @@
         $user = Auth::user(); 
         return response()->json(['message' => $user], $this-> successStatus); 
     } 
+
+    function getUsers(Request $request) {
+
+        return User::get();
+    }
+
+    function addUser(Request $request) {
+
+        return User::create($request->all());
+    }
+
+
+    function updateUser(Request $request, $userId) {
+
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'User not found.'
+            ], 403);
+        }
+
+        $user->update($request->all());
+
+        return response()->json(['message' => 'User updated successfully.']);
+    }
+
+    function deleteUser(Request $request, $userId) {
+
+        try {
+            $user = User::find($userId);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'User not found.'
+            ], 403);
+        }
+
+        $user->delete();
+
+        return response()->json(['message' => 'User deleted successfully.']);
+    }
+
+    function adminUser(Request $request, $userId) {
+        try {
+            $user = User::find($userId);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'User not found.'
+            ], 403);
+        }
+        // Actualizare coloană "role" la valoarea "admin
+        $user->role()->update(['role' => 'admin']); 
+
+        return response()->json(['message' => 'User updated to admin successfully.']);
+
+    }
+
 }

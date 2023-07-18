@@ -9,5 +9,5 @@ class Order extends Model
 {
     use HasFactory;
     protected $primaryKey = 'id';
-    protected $filltable = ['user_id', 'address', 'price'];
+    protected $fillable = ['user_id', 'address', 'price'];
 }
