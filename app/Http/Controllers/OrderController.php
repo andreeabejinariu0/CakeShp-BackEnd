@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\OrderProducts;
+use Illuminate\Support\Facades\Auth; 
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -14,8 +15,10 @@ class OrderController extends Controller
     {
         $jsonData = $request->all();
 
+        $user = Auth::user();
+
         // Formatează JSON-ul
-        $clientId = $jsonData['clientId'];
+        $clientId =  $user->id;
         $address = $jsonData['address'];
         $price = $jsonData['price'];
         $products = $jsonData['products'];
@@ -48,7 +51,7 @@ class OrderController extends Controller
 
         // Construirea corpului email-ului
         $body = "<h2>CakeShop - comanda a fost plasata cu succes</h2>";
-       // $body .= "<div style='margin-bottom: 20px;'><strong>ID Client:</strong> $clientId</div>";
+        $body .= "<div style='margin-bottom: 20px;'><strong>Buna </strong> $user->name !</div>";
         $body .= "<div style='margin-bottom: 20px;'><strong>Adresă:</strong> $address</div>";
         $body .= "<div style='margin-bottom: 20px;'><strong>Preț total:</strong> $price lei</div>";
         $body .= "<h3>Produse:</h3>";
@@ -92,9 +95,11 @@ class OrderController extends Controller
         return response()->json($productData);
     }
 
-    public function getOrders($client_id)
+    public function getOrders()
     {
-        $orders = Order::where('user_id', $client_id)->get();
+        $user = Auth::user();
+
+        $orders = Order::where('user_id', $user->id)->get();
 
         return $orders;
     }

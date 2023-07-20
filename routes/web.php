@@ -23,7 +23,7 @@ Route::post('/register', [App\Http\Controllers\API\UserController::class, 'regis
 Route::middleware(['auth:api'])->group(function () {
 
     // List users
-    Route::middleware(['scope:admin,basic'])->get('/users', [App\Http\Controllers\API\UserController::class, 'getUsers'] );
+    Route::middleware(['scope:admin'])->get('/users', [App\Http\Controllers\API\UserController::class, 'getUsers'] );
 
     // Add/Edit User
     Route::middleware(['scope:admin'])->post('/user',[App\Http\Controllers\API\UserController::class, 'addUser'] );
@@ -39,9 +39,12 @@ Route::middleware(['auth:api'])->group(function () {
 
 
 //rute pentru orders
-Route::post('/send-order', [App\Http\Controllers\OrderController::class, 'sendOrder']);
-Route::get('/getOrderProducts/{order_id}', [App\Http\Controllers\OrderController::class, 'getProductsByOrder']);
-Route::get('/getOrders/{user_id}', [App\Http\Controllers\OrderController::class, 'getOrders']);
+Route::middleware(['auth:api'])->group(function () {
+
+Route::middleware(['scope:admin,basic'])->post('/send-order', [App\Http\Controllers\OrderController::class, 'sendOrder']);
+Route::middleware(['scope:admin,basic'])->get('/getOrderProducts/{order_id}', [App\Http\Controllers\OrderController::class, 'getProductsByOrder']);
+Route::middleware(['scope:admin,basic'])->get('/getOrders', [App\Http\Controllers\OrderController::class, 'getOrders']);
+});
 
 
 //rute pentru category
@@ -82,6 +85,18 @@ Route::middleware(['auth:api'])->group(function () {
     // Delete products
     Route::middleware(['scope:admin'])->delete('/produs/{productId}', [App\Http\Controllers\ProductController::class, 'deleteProduct']);
 
+});
+
+
+Route::middleware(['auth:api'])->group(function () {
+    Route::middleware(['scope:admin'])->get('/role', function (Request $request) {
+
+    $user = Auth::user();
+
+    $userRole = $user->role()->first();
+
+    return response()->json(['role' => $userRole->role]);
+});
 });
 
 Route::get('/', function () {
